@@ -1,6 +1,6 @@
 namespace Authentication.IdentityServer.Models
 {
-    public class ChangeUserNameInputModel
+    public class ChangeEmailInputModel
     {
         public string CurrentEmail { get; set; }
 

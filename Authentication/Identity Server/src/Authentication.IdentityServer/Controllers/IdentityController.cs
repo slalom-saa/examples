@@ -33,7 +33,7 @@ namespace Authentication.IdentityServer.Controllers
                 throw new InvalidOperationException();
             }
 
-           return await _userManager.CreateAsync(new ApplicationUser { Email = request.Email, UserName = request.Email }, request.Password);
+            return await _userManager.CreateAsync(new ApplicationUser { Email = request.Email, UserName = request.Email }, request.Password);
         }
 
         [Route("identity/actions/confirm-email"), HttpPost]
@@ -81,8 +81,8 @@ namespace Authentication.IdentityServer.Controllers
             await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
         }
 
-        [Route("identity/actions/change-email"), HttpGet]
-        public async Task RequestEmailUpdate([FromBody] ChangeUserNameInputModel request)
+        [Route("identity/actions/request-email-change"), HttpPost]
+        public async Task<string> RequestEmailUpdate([FromBody] RequestEmailChangeInputModel request)
         {
             if (!this.ModelState.IsValid)
             {
@@ -90,11 +90,17 @@ namespace Authentication.IdentityServer.Controllers
             }
 
             var user = await _userManager.FindByNameAsync(request.CurrentEmail);
-            await _userManager.GenerateChangeEmailTokenAsync(user, request.NewEmail);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            return await _userManager.GenerateChangeEmailTokenAsync(user, request.NewEmail);
         }
 
         [Route("identity/actions/change-email"), HttpPost]
-        public async Task UpdateEmail([FromBody] ChangeUserNameInputModel request)
+        public async Task<IdentityResult> UpdateEmail([FromBody] ChangeEmailInputModel request)
         {
             if (!this.ModelState.IsValid)
             {
@@ -102,7 +108,16 @@ namespace Authentication.IdentityServer.Controllers
             }
 
             var user = await _userManager.FindByNameAsync(request.CurrentEmail);
-            await _userManager.ChangeEmailAsync(user, request.NewEmail, request.Token);
+
+
+            var result = await _userManager.ChangeEmailAsync(user, request.NewEmail, request.Token);
+
+            if (result.Succeeded)
+            {
+                await _userManager.SetUserNameAsync(user, request.NewEmail);
+            }
+
+            return result;
         }
     }
 }

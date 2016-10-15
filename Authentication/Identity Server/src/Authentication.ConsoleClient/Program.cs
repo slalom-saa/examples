@@ -42,13 +42,17 @@ namespace Authentication.ConsoleClient
             {
                 Console.WriteLine("Calling client...");
 
-                var result = await client.GetUserToken("georgeo@slalom.com", "Pass@word1");
+                var email = "georgeo@slalom.com";
 
-                //var email = "georgeo@slalom.com";
 
-                //var token = await client.RequestPasswordResetAsync(email);
+                var result = await GetUserToken("fred", "$s1IwhAQ1F");
 
-                //var result = await client.ResetPasswordAsync(email, token, "Pass@word1");
+                //var token = await client.RequestEmailChangeAsync(email, "fred");
+
+                //var result = await client.ChangeEmailAsync(email, token, "fred");
+
+
+
 
                 Console.WriteLine(JsonConvert.SerializeObject(result, Formatting.Indented));
             }

@@ -13,7 +13,7 @@ namespace Authentication.ConsoleClient
         private string _clientSecret;
 
         private string _clientId;
-        
+
         private string _authority;
 
         public async Task<string> RequestPasswordResetAsync(string email)
@@ -25,7 +25,17 @@ namespace Authentication.ConsoleClient
             return await result.Content.ReadAsStringAsync();
         }
 
-        public Task<TokenResponse> GetUserToken(string userName, string password)
+        public async Task<string> RequestEmailChangeAsync(string currentEmail, string newEmail)
+        {
+            var result = await _client.Value.PostAsJsonAsync(_authority + "/identity/actions/request-email-change", new
+            {
+                currentEmail,
+                newEmail
+            });
+            return await result.Content.ReadAsStringAsync();
+        }
+
+        public Task<TokenResponse> GetUserTokenAsync(string userName, string password)
         {
             var client = new TokenClient(_discovery.Value.TokenEndpoint, _clientId, _clientSecret);
 
@@ -37,7 +47,7 @@ namespace Authentication.ConsoleClient
             var result = await _client.Value.PostAsJsonAsync(_authority + "/identity/actions/reset-password", new
             {
                 email,
-                token, 
+                token,
                 password
             });
             return await result.Content.ReadAsJsonAsync<IdentityResponse>();
@@ -104,6 +114,18 @@ namespace Authentication.ConsoleClient
             {
                 _client.Value.Dispose();
             }
+        }
+
+        public async Task<IdentityResponse> ChangeEmailAsync(string currentEmail, string token, string newEmail)
+        {
+            var result = await _client.Value.PostAsJsonAsync(_authority + "/identity/actions/change-email", new
+            {
+                currentEmail,
+                newEmail,
+                token
+            });
+
+            return await result.Content.ReadAsJsonAsync<IdentityResponse>();
         }
     }
 }
