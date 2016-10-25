@@ -44,15 +44,16 @@ namespace Authentication.IdentityServer
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             this.InitializeDatabase(app);
+            app.Properties["host.AppMode"] = "development";
 
             loggerFactory.AddConsole();
             loggerFactory.AddDebug();
 
-            if (env.IsDevelopment())
+            //if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
-                app.UseBrowserLink();
+              //  app.UseBrowserLink();
             }
 
             // Identity API Authentication
@@ -64,6 +65,7 @@ namespace Authentication.IdentityServer
                 AutomaticChallenge = false
             });
 
+            // Static files
             app.UseStaticFiles();
 
             // ASP.NET Identity

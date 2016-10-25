@@ -1,0 +1,77 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+<script src="~/Scripts/angular.js"></script>
+<script type="text/javascript">
+    angular.module('app', [])
+        .config(['$httpProvider', function ($httpProvider) {
+            $httpProvider.defaults.withCredentials = true;
+        }])
+        .controller('signIn', ['$http',
+            function ($http) {
+                var vm = this;
+
+                vm.email = 'georgeo@slalom.com';
+                vm.password = 'Pass@word1';
+
+                vm.signIn = signIn;
+                vm.signOut = signOut;
+                vm.request = request;
+
+                return vm;
+
+                function signIn() {
+                    vm.message = '';
+                    $http.post('http://localhost:60536/api/identity/sign-in',
+                        {
+                            email: vm.email,
+                            password: vm.password
+                        })
+                        .then(function (data) {
+                            vm.message = data.data;
+                        }).catch(function (data) {
+                            vm.message = data.data.Message;
+                        });;
+                }
+
+                function signOut() {
+                    vm.message = '';
+                    $http.post('http://localhost:60536/api/identity/sign-out')
+                        .then(function (data) {
+                            vm.message = 'Success';
+                        }).catch(function (data) {
+                            vm.message = data.data.Message;
+                        });;
+                }
+
+                function request() {
+                    vm.message = '';
+                    $http.get('http://localhost:60600/api/secure')
+                        .then(function (data) {
+                            vm.message = JSON.stringify(data.data, null, '\t');
+                        }).catch(function (data) {
+                            vm.message = data.data.Message;
+                        });
+                }
+            }]);
+
+</script>
+<style>
+    .row input, .row textarea {
+        margin-top: 15px;
+    }
+
+    .form-control {
+        min-width: 800px;
+    }
+</style>
+<div class="row" ng-app="app" ng-controller="signIn as vm">
+    <div class="col-md-12">
+        <input type="text" class="form-control" ng-model="vm.email" />
+        <input type="password" class="form-control" ng-model="vm.password" />
+        <input type="button" class="btn btn-submit" value="Sign In" ng-click="vm.signIn()" />
+        <input type="button" class="btn btn-submit" value="Sign Out" ng-click="vm.signOut()" />
+        <input type="button" class="btn btn-submit" value="Request" ng-click="vm.request()" />
+        <textarea class="form-control" rows="15" cols="2" ng-model="vm.message"></textarea>
+    </div>
+</div>

@@ -44,8 +44,7 @@ namespace Authentication.ConsoleClient
 
                 var email = "georgeo@slalom.com";
 
-
-                var result = await GetUserToken("fred", "$s1IwhAQ1F");
+                var result = await client.GetUserTokenAsync(email, "$s1IwhAQ1F");
 
                 //var token = await client.RequestEmailChangeAsync(email, "fred");
 
@@ -65,6 +64,7 @@ namespace Authentication.ConsoleClient
             using (var client = new HttpClient())
             {
                 client.SetBearerToken(token);
+
 
                 var result = client.PostAsJsonAsync(Authority + "/identity/actions/register", new
                 {
