@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using IdentityModel.Client;
 using Microsoft.Extensions.Configuration;
@@ -9,23 +10,72 @@ using Newtonsoft.Json.Linq;
 
 namespace Authentication.ConsoleClient
 {
+    public static class HttpClientExtensions
+    {
+        public static Task<HttpResponseMessage> PostAsJsonAsync(this HttpClient client, string uri, object content)
+        {
+            return client.PostAsync(uri, new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json"));
+        }
+
+        public static async Task<T> ReadAsJsonAsync<T>(this HttpContent message)
+        {
+            var content = await message.ReadAsStringAsync();
+
+            return JsonConvert.DeserializeObject<T>(content);
+        }
+    }
+
     public class Program
     {
         public static void Main(string[] args)
         {
             Console.Title = "Client";
 
-            Console.WriteLine("When the services are loaded press any key to continue...");
+            new Program().Start();
+
             Console.ReadKey();
-            Console.Clear();
+        }
 
-            RequestWithClientCredentials();
+        public async void Start()
+        {
+            using (var client = new IdentityClient(Configuration.Value))
+            {
+                Console.WriteLine("Calling client...");
 
-            Console.WriteLine("Press any key to user identity...");
-            Console.ReadKey();
-            Console.Clear();
+                var email = "georgeo@slalom.com";
 
-            RequestWithUserCredentials();
+                var result = await client.GetUserTokenAsync(email, "$s1IwhAQ1F");
+
+                //var token = await client.RequestEmailChangeAsync(email, "fred");
+
+                //var result = await client.ChangeEmailAsync(email, token, "fred");
+
+
+
+
+                Console.WriteLine(JsonConvert.SerializeObject(result, Formatting.Indented));
+            }
+        }
+
+        private static void Register()
+        {
+            var token = GetClientToken().Result;
+
+            using (var client = new HttpClient())
+            {
+                client.SetBearerToken(token);
+
+
+                var result = client.PostAsJsonAsync(Authority + "/identity/actions/register", new
+                {
+                    Email = "george.olson@windowslive.com",
+                    Password = "Pass@word1"
+                }).Result;
+
+                Console.Clear();
+                Console.WriteLine(OutputContent(result).Result);
+                Console.WriteLine();
+            }
         }
 
         private static string RequestWithUserCredentials()

@@ -26,28 +26,30 @@ namespace Authentication.IdentityServer.Controllers
         }
 
         [Route("identity/actions/register"), HttpPost]
-        public async Task Register([FromBody] RegisterInputModel request)
+        public async Task<IdentityResult> Register([FromBody] RegisterInputModel request)
         {
             if (!this.ModelState.IsValid)
             {
                 throw new InvalidOperationException();
             }
 
-            await _userManager.CreateAsync(new ApplicationUser { Email = request.Email, UserName = request.Email }, request.Password);
+            return await _userManager.CreateAsync(new ApplicationUser { Email = request.Email, UserName = request.Email }, request.Password);
         }
 
         [Route("identity/actions/confirm-email"), HttpPost]
-        public async Task ConfirmEmail(string userName, string code)
+        public async Task<IdentityResult> ConfirmEmail([FromBody]ConfirmEmailInputModel request)
         {
-            var user = await _userManager.FindByIdAsync(userName);
+            var user = await _userManager.FindByEmailAsync(request.Email);
 
-            await _userManager.ConfirmEmailAsync(user, code);
+            user.EmailConfirmed = true;
+
+            return await _userManager.UpdateAsync(user);
         }
 
         [Route("identity/actions/request-reset"), HttpPost]
-        public async Task<string> RequestReset(string userId)
+        public async Task<string> RequestReset([FromBody]RequestPasswordResultInputModel request)
         {
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await _userManager.FindByEmailAsync(request.Email);
             if (user.EmailConfirmed)
             {
                 return await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -56,53 +58,66 @@ namespace Authentication.IdentityServer.Controllers
         }
 
         [Route("identity/actions/reset-password"), HttpPost]
-        public async Task ResetPassword([FromBody] ResetPasswordInputModel request)
+        public async Task<IdentityResult> ResetPassword([FromBody] ResetPasswordInputModel request)
         {
             if (!this.ModelState.IsValid)
             {
                 throw new InvalidOperationException();
             }
 
-            var user = await _userManager.FindByIdAsync(request.UserId);
-            await _userManager.ResetPasswordAsync(user, request.Token, request.Password);
+            var user = await _userManager.FindByEmailAsync(request.Email);
+            return await _userManager.ResetPasswordAsync(user, request.Token, request.Password);
         }
 
-        //[Route("identity/actions/send-code"), HttpPost]
-        //public async Task SendCode([FromBody] SendCodeInputModel request)
-        //{
-        //    var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+        [Route("identity/actions/change-passsword"), HttpPost]
+        public async Task ChangePassword([FromBody] ChangePasswordInputModel request)
+        {
+            if (!this.ModelState.IsValid)
+            {
+                throw new InvalidOperationException();
+            }
 
-        //    var code = await _userManager.GenerateTwoFactorTokenAsync(user, request.Provider);
+            var user = await _userManager.FindByNameAsync(request.UserName);
+            await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+        }
 
-        //    var message = "Your security code is: " + code;
-        //    if (request.Provider == "Email")
-        //    {
-        //        await _emailSender.SendEmailAsync(await _userManager.GetEmailAsync(user), "Security Code", message);
-        //    }
-        //    else if (request.Provider == "Phone")
-        //    {
-        //        await _smsSender.SendSmsAsync(await _userManager.GetPhoneNumberAsync(user), message);
-        //    }
-        //}
+        [Route("identity/actions/request-email-change"), HttpPost]
+        public async Task<string> RequestEmailUpdate([FromBody] RequestEmailChangeInputModel request)
+        {
+            if (!this.ModelState.IsValid)
+            {
+                throw new InvalidOperationException();
+            }
 
-        //[Route("identity/actions/verify-code"), HttpPost]
-        //public async Task<VerifyCodeStatus> VerifyCode([FromBody] VerifyCodeInputModel request)
-        //{
-        //    if (!this.ModelState.IsValid)
-        //    {
-        //        throw new InvalidOperationException();
-        //    }
+            var user = await _userManager.FindByNameAsync(request.CurrentEmail);
 
-        //    var result = await _signInManager.TwoFactorSignInAsync(request.Provider, request.Code, request.RememberMe, request.RememberBrowser);
-        //    if (result.Succeeded)
-        //    {
-        //        return VerifyCodeStatus.Success;
-        //    }
-        //    if (result.IsLockedOut)
-        //    {
-        //        return VerifyCodeStatus.LockedOut;
-        //    }
-        //    return VerifyCodeStatus.Invalid;
-        //}
+            if (user == null)
+            {
+                return null;
+            }
+
+            return await _userManager.GenerateChangeEmailTokenAsync(user, request.NewEmail);
+        }
+
+        [Route("identity/actions/change-email"), HttpPost]
+        public async Task<IdentityResult> UpdateEmail([FromBody] ChangeEmailInputModel request)
+        {
+            if (!this.ModelState.IsValid)
+            {
+                throw new InvalidOperationException();
+            }
+
+            var user = await _userManager.FindByNameAsync(request.CurrentEmail);
+
+
+            var result = await _userManager.ChangeEmailAsync(user, request.NewEmail, request.Token);
+
+            if (result.Succeeded)
+            {
+                await _userManager.SetUserNameAsync(user, request.NewEmail);
+            }
+
+            return result;
+        }
     }
 }

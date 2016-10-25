@@ -1,8 +1,11 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Authentication.IdentityServer.Data;
+using Authentication.IdentityServer.Services;
 using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Mappers;
 using Microsoft.AspNetCore.Builder;
@@ -41,15 +44,16 @@ namespace Authentication.IdentityServer
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             this.InitializeDatabase(app);
+            app.Properties["host.AppMode"] = "development";
 
             loggerFactory.AddConsole();
             loggerFactory.AddDebug();
 
-            if (env.IsDevelopment())
+            //if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
-                app.UseBrowserLink();
+              //  app.UseBrowserLink();
             }
 
             // Identity API Authentication
@@ -61,6 +65,7 @@ namespace Authentication.IdentityServer
                 AutomaticChallenge = false
             });
 
+            // Static files
             app.UseStaticFiles();
 
             // ASP.NET Identity
@@ -79,7 +84,7 @@ namespace Authentication.IdentityServer
         {
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
             var connectionString = this.Configuration.GetConnectionString("Identity");
-            
+
             // ASP.NET Identity
             services.AddDbContext<ApplicationDbContext>(options =>
                                                         options.UseSqlServer(connectionString));
@@ -92,7 +97,8 @@ namespace Authentication.IdentityServer
             services.AddMvc();
 
             // Identity Server
-            services.AddDeveloperIdentityServer()
+            services.AddIdentityServer()
+                .SetSigningCredential(LoadCertificate())
                     .AddConfigurationStore(builder =>
                         builder.UseSqlServer(connectionString, options =>
                             options.MigrationsAssembly(migrationsAssembly)))
@@ -100,6 +106,14 @@ namespace Authentication.IdentityServer
                         builder.UseSqlServer(connectionString, options =>
                             options.MigrationsAssembly(migrationsAssembly)))
                     .AddAspNetIdentity<ApplicationUser>();
+
+            services.AddTransient<IEmailSender, AuthMessageSender>();
+            services.AddTransient<ISmsSender, AuthMessageSender>();
+        }
+
+        private static X509Certificate2 LoadCertificate()
+        {
+            return new X509Certificate2(Path.Combine(Directory.GetCurrentDirectory(), "idsrv3test.pfx"), "idsrv3test");
         }
 
         private async void InitializeDatabase(IApplicationBuilder app)
@@ -107,7 +121,7 @@ namespace Authentication.IdentityServer
             using (var scope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
                 Console.WriteLine("Migrating ApplicationDbContext...");
-                    scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.Migrate();
+                scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.Migrate();
 
                 Console.WriteLine("Migrating PersistedGrantDbContext...");
                 scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>().Database.Migrate();
