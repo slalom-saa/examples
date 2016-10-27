@@ -35,6 +35,31 @@ namespace Authentication.IdentityServer
                         StandardScopes.Profile.Name,
                         StandardScopes.Roles.Name
                     }
+                },
+                new Client
+                {
+                    ClientName = "Example Oidc Client",
+                    ClientId = "js-oidc",
+
+                    AllowedGrantTypes = GrantTypes.Implicit,
+                    
+                    RedirectUris = new List<string>
+                    {
+                        "http://localhost:63901/popup.html"
+                    },
+
+                    AllowedCorsOrigins = new List<string>
+                    {
+                        "http://localhost:63901"
+                    },
+
+                    AllowedScopes = new List<string>
+                    {
+                        "api",
+                        StandardScopes.OpenId.Name,
+                        StandardScopes.Profile.Name,
+                        StandardScopes.Roles.Name
+                    }
                 }
             };
         }

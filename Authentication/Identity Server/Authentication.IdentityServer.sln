@@ -16,6 +16,8 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Authentication.WebApi", "sr
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Authentication.ConsoleClient", "src\Authentication.ConsoleClient\Authentication.ConsoleClient.xproj", "{4645BAC5-2104-4E0D-8AE3-AC9804128EDA}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Authentication.JsClient", "src\Authentication.JsClient\Authentication.JsClient.xproj", "{FA0BB284-8B97-4866-BFE0-654B26467DF2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +36,10 @@ Global
 		{4645BAC5-2104-4E0D-8AE3-AC9804128EDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4645BAC5-2104-4E0D-8AE3-AC9804128EDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4645BAC5-2104-4E0D-8AE3-AC9804128EDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA0BB284-8B97-4866-BFE0-654B26467DF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA0BB284-8B97-4866-BFE0-654B26467DF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA0BB284-8B97-4866-BFE0-654B26467DF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA0BB284-8B97-4866-BFE0-654B26467DF2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -42,5 +48,6 @@ Global
 		{E1DDAF78-7CE9-4DA2-9817-5F5E3C265DBD} = {465D1450-277A-48F0-85B3-E3F771175B69}
 		{C0166FFF-9ACF-4547-A57F-E85BC95549E6} = {465D1450-277A-48F0-85B3-E3F771175B69}
 		{4645BAC5-2104-4E0D-8AE3-AC9804128EDA} = {465D1450-277A-48F0-85B3-E3F771175B69}
+		{FA0BB284-8B97-4866-BFE0-654B26467DF2} = {465D1450-277A-48F0-85B3-E3F771175B69}
 	EndGlobalSection
 EndGlobal

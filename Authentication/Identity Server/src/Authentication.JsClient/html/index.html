@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>JS Application</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <style>
+        .main-container {
+            padding-top: 70px;
+        }
+
+        pre:empty {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">JS Application</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container main-container">
+        <div class="row">
+            <div class="col-xs-12">
+                <ul class="list-inline list-unstyled requests">
+                    <li><a href="index.html" class="btn btn-primary">Home</a></li>
+                    <li><button type="button" class="btn btn-default js-login">Login</button></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">ID Token Contents</div>
+                    <div class="panel-body">
+                        <pre class="js-id-token"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/oidc-client.min.js"></script>
+
+    <script>
+        function display(selector, data) {
+            if (data && typeof data === 'string') {
+                data = JSON.parse(data);
+            }
+            if (data) {
+                data = JSON.stringify(data, null, 2);
+            }
+
+            $(selector).text(data);
+        }
+
+        var settings = {
+            authority: 'http://localhost:5000/',
+            client_id: 'js-oidc',
+            popup_redirect_uri: 'http://localhost:63901/popup.html',
+
+            response_type: 'id_token',
+            scope: 'openid profile',
+
+            filterProtocolClaims: true
+        };
+
+        var manager = new Oidc.UserManager(settings);
+        var user;
+
+        manager.events.addUserLoaded(function (loadedUser) {
+            user = loadedUser;
+            display('.js-user', user);
+        });
+
+        $('.js-login').on('click', function () {
+            manager
+                .signinPopup()
+                .catch(function (error) {
+                    console.error('error while logging in through the popup', error);
+                });
+        });
+    </script>
+</body>
+</html>

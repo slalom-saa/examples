@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 
 namespace Authentication.IdentityServer
 {
@@ -48,13 +49,15 @@ namespace Authentication.IdentityServer
 
             loggerFactory.AddConsole();
             loggerFactory.AddDebug();
-
+            
             //if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
               //  app.UseBrowserLink();
             }
+
+            app.UseCors("AllowAll");
 
             // Identity API Authentication
             app.UseIdentityServerAuthentication(new IdentityServerAuthenticationOptions
@@ -75,7 +78,7 @@ namespace Authentication.IdentityServer
             app.UseIdentityServer();
 
             // API
-            app.UseMvc();
+            app.UseMvcWithDefaultRoute();
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -84,6 +87,16 @@ namespace Authentication.IdentityServer
         {
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
             var connectionString = this.Configuration.GetConnectionString("Identity");
+
+            services.AddCors(options =>
+            {
+                var policy = new CorsPolicyBuilder();
+                policy.AllowAnyHeader();
+                policy.AllowAnyMethod();
+                policy.AllowAnyOrigin();
+                policy.AllowCredentials();
+                options.AddPolicy("AllowAll", policy.Build());
+            });
 
             // ASP.NET Identity
             services.AddDbContext<ApplicationDbContext>(options =>
@@ -131,13 +144,12 @@ namespace Authentication.IdentityServer
                 context.Database.Migrate();
 
                 Console.WriteLine("Adding seed data...");
-                if (!context.Clients.Any())
+                foreach(var client in IdentityConfiguration.GetClients())
                 {
-                    foreach (var client in IdentityConfiguration.GetClients())
+                    if (!context.Clients.Any(c => c.ClientId == client.ClientId))
                     {
                         context.Clients.Add(client.ToEntity());
                     }
-                    context.SaveChanges();
                 }
 
                 if (!context.Scopes.Any())
